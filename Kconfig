@@ -1,0 +1,27 @@
+mainmenu "PD-Embedded Project Configuration"
+
+# 配置项目代号
+config PROJECT_NAME
+    string "Project Name"
+    default "PD-Embedded"
+
+# 配置项目版本号
+config PROJECT_VERSION
+    string "Project Version"
+    default "0.1.0"
+
+# 设置芯片
+choice
+    prompt "Select SOC"
+    default HC32F460
+
+config HC32F460
+    bool "Use HC32F460"
+
+endchoice
+
+# 导入子目录配置
+rsource "src/driver/Kconfig"
+rsource "src/bsp/Kconfig"
+# rsource "src/libs/rtos/Kconfig"
+rsource "src/app/Kconfig"

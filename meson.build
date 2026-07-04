@@ -1,0 +1,57 @@
+project('elev-cop-fw', 'c',
+    version : '0.1.0',
+    default_options : ['c_std=gnu17']
+)
+
+# 加载子目录
+subdir('src')
+
+# 声明编译器参数
+common_c_args = [
+    '-mcpu=cortex-m4',                  # MCU核心
+    '-mthumb',                          # 使用Thumb指令集
+    '-mfpu=fpv4-sp-d16',                # Cortex-M4F 单精度浮点单元
+    '-mfloat-abi=hard',                 # 如果你的MCU有FPU，可改为 'hard'
+    '-ffunction-sections',              # 优化，未使用的函数不链接
+    '-fdata-sections',                  # 优化，未使用的数据不链接
+    '-Wall',                            # 开启常用警告
+    '-Wextra',                          # 开启额外警告
+    '-Os',                              # 优化代码体积
+    '-g',                               # 保留调试信息
+    '-Wno-main',                        # 忽略无 main 函数警告
+    '-Wno-main-return-type',            # 忽略 main 函数返回类型不标准的警告
+]
+
+common_link_args = [
+    '-mcpu=cortex-m4',
+    '-mthumb',
+    '-mfloat-abi=hard',
+    '-Wl,--gc-sections',                # 删除未使用的段
+    '-Wl,-Map=output.map',              # 生成内存映射文件（相对 build 目录）
+    '-Wl,--no-warn-rwx-segments',       # 裸机系统忽略 RWX 段警告
+    '-nostartfiles',                    # 不使用标准启动文件，使用自己的
+]
+
+# 声明可执行文件（EL格式）
+exe = executable('exe',
+    name_suffix : 'elf',                # 生成 elf 文件
+    c_args : common_c_args,             # 设置编译器参数
+    link_args : common_link_args,       # 设置链接器参数
+    dependencies : src_dep,             # 需要编译的依赖
+)
+
+# 自定义目标：将 elf 转换为 hex
+custom_target('exe.hex',
+    input : exe,
+    output : 'exe.hex',
+    command : ['arm-none-eabi-objcopy', '-O', 'ihex', '@INPUT@', '@OUTPUT@'],
+    build_by_default : false,
+)
+
+# 自定义目标：将 elf 转换为 bin
+custom_target('exe.bin',
+    input : exe,
+    output : 'exe.bin',
+    command : ['arm-none-eabi-objcopy', '-O', 'binary', '@INPUT@', '@OUTPUT@'],
+    build_by_default : false,
+)
